@@ -6,195 +6,307 @@
   <title>rxcoder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&family=Space+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400&family=Space+Mono&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --white: #ffffff;
-      --near-white: #fafafa;
-      --text-primary: #1a1a1a;
-      --text-light: #9a9a9a;
-      --text-ultra-light: #c8c8c8;
-      --accent: #d0d0d0;
-      --cursor: #1a1a1a;
+      --bg: #ffffff;
+      --ink: #111111;
+      --mid: #888888;
+      --faint: #cccccc;
+      --ghost: #eeeeee;
+      --green: #22c55e;
+      --green-soft: rgba(34,197,94,0.12);
     }
 
-    html, body {
-      height: 100%;
-    }
+    html, body { height: 100%; }
 
     body {
-      background: var(--white);
+      background: var(--bg);
       font-family: 'Inter', sans-serif;
-      font-weight: 200;
-      color: var(--text-primary);
+      color: var(--ink);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       overflow: hidden;
+      cursor: none;
     }
 
-    /* Subtle grid background */
-    body::before {
-      content: '';
+    /* ── custom cursor ── */
+    #cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--ink);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: multiply;
+    }
+    #cursor.big {
+      width: 48px; height: 48px;
+      background: rgba(0,0,0,0.06);
+    }
+
+    /* ── canvas for particles ── */
+    #canvas {
       position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
       pointer-events: none;
       z-index: 0;
     }
 
+    /* ── noise overlay ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── stage ── */
     .stage {
       position: relative;
-      z-index: 1;
+      z-index: 3;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
+      gap: 0;
       text-align: center;
       padding: 0 24px;
     }
 
-    /* Eyebrow label */
+    /* ── eyebrow ── */
     .eyebrow {
       font-family: 'Space Mono', monospace;
       font-size: 10px;
-      letter-spacing: 0.32em;
+      letter-spacing: 0.38em;
       text-transform: uppercase;
-      color: var(--text-ultra-light);
+      color: var(--faint);
+      margin-bottom: 20px;
       opacity: 0;
-      animation: rise 0.8s ease forwards 0.2s;
+      animation: rise 0.7s ease forwards 0.1s;
     }
 
-    /* Main wordmark */
-    .wordmark {
-      font-family: 'Inter', sans-serif;
-      font-weight: 200;
-      font-size: clamp(56px, 12vw, 120px);
-      letter-spacing: -0.03em;
-      color: var(--text-primary);
-      line-height: 1;
-      opacity: 0;
-      animation: rise 0.9s ease forwards 0.45s;
+    /* ── wordmark ── */
+    .wordmark-wrap {
       position: relative;
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: rise 1s cubic-bezier(0.16,1,0.3,1) forwards 0.3s;
+    }
+
+    /* glitch layers */
+    .wordmark-wrap::before,
+    .wordmark-wrap::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      font-family: 'Inter', sans-serif;
+      font-weight: 100;
+      font-size: clamp(72px, 13vw, 128px);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .wordmark-wrap::before {
+      color: rgba(255,0,80,0.18);
+      animation: glitch-a 4s infinite steps(1);
+      clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    }
+    .wordmark-wrap::after {
+      color: rgba(0,200,255,0.18);
+      animation: glitch-b 4s infinite steps(1);
+      clip-path: polygon(0 55%, 100% 55%, 100% 75%, 0 75%);
+    }
+
+    .wordmark {
+      font-weight: 100;
+      font-size: clamp(72px, 13vw, 128px);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--ink);
+      display: block;
+      position: relative;
+      user-select: none;
+    }
+
+    /* char hover effect via JS */
+    .wordmark span {
       display: inline-block;
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), color 0.2s;
+    }
+    .wordmark span:hover {
+      transform: translateY(-6px) scale(1.08);
+      color: var(--mid);
     }
 
-    /* Blinking cursor after wordmark */
-    .wordmark::after {
-      content: '_';
-      font-weight: 200;
-      color: var(--text-ultra-light);
-      animation: blink 1.1s step-end infinite;
-      margin-left: 2px;
+    /* cursor blink */
+    .blink {
+      display: inline-block;
+      width: 3px;
+      height: clamp(48px, 9vw, 90px);
+      background: var(--faint);
+      margin-left: 4px;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+      position: relative;
+      top: -4px;
     }
 
-    /* Tagline */
-    .tagline {
-      font-weight: 300;
-      font-size: clamp(13px, 2vw, 16px);
-      letter-spacing: 0.04em;
-      color: var(--text-light);
-      max-width: 360px;
-      line-height: 1.7;
-      opacity: 0;
-      animation: rise 0.8s ease forwards 0.75s;
-    }
-
-    /* Divider */
-    .divider {
-      width: 32px;
-      height: 1px;
-      background: var(--accent);
-      opacity: 0;
-      animation: rise 0.6s ease forwards 1s;
-    }
-
-    /* Status pill */
-    .status {
+    /* ── pill row ── */
+    .pills {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--text-ultra-light);
-      letter-spacing: 0.12em;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 32px;
       opacity: 0;
-      animation: rise 0.7s ease forwards 1.2s;
+      animation: rise 0.7s ease forwards 0.7s;
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
+    .pill {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 5px 14px;
+      border: 1px solid var(--ghost);
+      border-radius: 100px;
+      color: var(--mid);
+      background: transparent;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .pill:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+    .pill.live {
+      border-color: rgba(34,197,94,0.4);
+      color: var(--green);
+      background: var(--green-soft);
+    }
+    .pill.live::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
       border-radius: 50%;
-      background: #c5e8c5;
-      box-shadow: 0 0 0 2px #e8f5e8;
-      animation: pulse 2.4s ease-in-out infinite;
+      background: var(--green);
+      margin-right: 7px;
+      vertical-align: middle;
+      animation: pulse 2s ease-in-out infinite;
+      position: relative; top: -1px;
     }
 
-    /* Animations */
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
+    /* ── tagline ── */
+    .tagline {
+      font-weight: 200;
+      font-size: clamp(13px, 1.8vw, 15px);
+      color: var(--mid);
+      letter-spacing: 0.06em;
+      max-width: 340px;
+      line-height: 1.8;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: rise 0.7s ease forwards 0.9s;
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0; }
+    /* ── contact ── */
+    .contact-wrap {
+      opacity: 0;
+      animation: rise 0.7s ease forwards 1.1s;
     }
 
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 2px #e8f5e8; }
-      50%       { box-shadow: 0 0 0 5px #d4f0d4; }
-    }
-
-    /* Contact */
     .contact {
       font-family: 'Space Mono', monospace;
       font-size: 11px;
-      color: var(--text-ultra-light);
-      letter-spacing: 0.12em;
+      color: var(--faint);
       text-decoration: none;
-      border-bottom: 1px solid var(--accent);
-      padding-bottom: 1px;
-      transition: color 0.2s, border-color 0.2s;
-      opacity: 0;
-      animation: rise 0.7s ease forwards 1.45s;
+      letter-spacing: 0.1em;
+      position: relative;
+      padding-bottom: 3px;
     }
-
-    .contact:hover {
-      color: var(--text-light);
-      border-color: var(--text-light);
+    .contact::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 1px;
+      background: var(--ink);
+      transition: width 0.3s ease;
     }
+    .contact:hover { color: var(--ink); }
+    .contact:hover::after { width: 100%; }
 
-    /* Footer */
+    /* ── footer ── */
     footer {
       position: fixed;
-      bottom: 28px;
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--text-ultra-light);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      z-index: 1;
+      bottom: 0;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 20px 32px;
+      z-index: 3;
       opacity: 0;
-      animation: rise 0.6s ease forwards 1.6s;
+      animation: rise 0.6s ease forwards 1.4s;
+    }
+
+    .footer-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    /* ── corner decorations ── */
+    .corner {
+      position: fixed;
+      width: 20px; height: 20px;
+      opacity: 0;
+      animation: rise 0.6s ease forwards 1.5s;
+      z-index: 3;
+    }
+    .corner svg { display: block; }
+    .tl { top: 24px; left: 24px; }
+    .tr { top: 24px; right: 24px; transform: rotate(90deg); }
+    .bl { bottom: 24px; left: 24px; transform: rotate(-90deg); }
+    .br { bottom: 24px; right: 24px; transform: rotate(180deg); }
+
+    /* ── keyframes ── */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blink {
+      0%,100% { opacity: 1; } 50% { opacity: 0; }
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+    @keyframes glitch-a {
+      0%,90%,100% { transform: translate(0); }
+      92% { transform: translate(-3px, 1px); }
+      94% { transform: translate(3px, -1px); }
+      96% { transform: translate(-2px, 0); }
+    }
+    @keyframes glitch-b {
+      0%,90%,100% { transform: translate(0); }
+      93% { transform: translate(3px, 1px); }
+      95% { transform: translate(-3px, -1px); }
+      97% { transform: translate(2px, 0); }
     }
 
     @media (max-width: 480px) {
-      .tagline { font-size: 13px; }
+      footer { padding: 14px 18px; }
+      .corner { display: none; }
     }
-
     @media (prefers-reduced-motion: reduce) {
       * { animation-duration: 0.01ms !important; }
     }
@@ -202,19 +314,145 @@
 </head>
 <body>
 
-  <main class="stage" role="main">
-    <span class="eyebrow">est. 2026</span>
-    <h1 class="wordmark">rxcoder</h1>
-    <div class="divider"></div>
-    <p class="tagline">crafting clean code &amp; thoughtful digital experiences</p>
-    <div class="status">
-      <span class="status-dot"></span>
-      available for projects
-    </div>
+<div id="cursor"></div>
+<canvas id="canvas"></canvas>
+
+<!-- corner brackets -->
+<div class="corner tl"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
+<div class="corner tr"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
+<div class="corner bl"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
+<div class="corner br"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
+
+<main class="stage" role="main">
+  <span class="eyebrow">est. 2026</span>
+
+  <div class="wordmark-wrap" data-text="rxcoder">
+    <h1 class="wordmark" id="wm"></h1><span class="blink"></span>
+  </div>
+
+  <div class="pills">
+    <span class="pill live">available for projects</span>
+    <span class="pill">full-stack</span>
+    <span class="pill">open source</span>
+  </div>
+
+  <p class="tagline">crafting clean code &amp;<br>thoughtful digital experiences</p>
+
+  <div class="contact-wrap">
     <a class="contact" href="mailto:rahukp784@gmail.com">rahukp784@gmail.com</a>
-  </main>
+  </div>
+</main>
 
-  <footer>© 2026 rxcoder</footer>
+<footer>
+  <span class="footer-text">rxcoder</span>
+  <span class="footer-text">© 2026</span>
+</footer>
 
+<script>
+  /* ── split wordmark into spans ── */
+  const wm = document.getElementById('wm');
+  'rxcoder'.split('').forEach(c => {
+    const s = document.createElement('span');
+    s.textContent = c;
+    wm.appendChild(s);
+  });
+
+  /* ── custom cursor ── */
+  const cur = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top  = e.clientY + 'px';
+  });
+  document.querySelectorAll('a, span[class], h1 span').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('big'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('big'));
+  });
+
+  /* ── particle canvas ── */
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor(x, y) {
+      this.x = x ?? Math.random() * W;
+      this.y = y ?? Math.random() * H;
+      this.size = Math.random() * 1.5 + 0.3;
+      this.vx = (Math.random() - 0.5) * 0.3;
+      this.vy = (Math.random() - 0.5) * 0.3;
+      this.life = 1;
+      this.decay = Math.random() * 0.003 + 0.001;
+      this.spawned = !!x;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life -= this.decay;
+    }
+    draw() {
+      ctx.globalAlpha = this.life * 0.35;
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // ambient particles
+  for (let i = 0; i < 60; i++) particles.push(new Particle());
+
+  // mouse trail
+  let mx = -999, my = -999;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+  let frame = 0;
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    // spawn trail
+    frame++;
+    if (frame % 3 === 0 && mx > 0) {
+      particles.push(new Particle(mx + (Math.random()-0.5)*6, my + (Math.random()-0.5)*6));
+    }
+    // draw connections
+    ctx.globalAlpha = 0.04;
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i+1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < 90) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    particles = particles.filter(p => {
+      p.update(); p.draw();
+      if (!p.spawned && p.life <= 0) return false;
+      if (p.spawned && p.life <= 0) return false;
+      if (!p.spawned && (p.x < 0 || p.x > W || p.y < 0 || p.y > H)) {
+        p.x = Math.random() * W;
+        p.y = Math.random() * H;
+        p.life = 1;
+      }
+      return true;
+    });
+    // keep ambient count steady
+    while (particles.filter(p => !p.spawned).length < 60) particles.unshift(new Particle());
+    requestAnimationFrame(loop);
+  }
+  loop();
+</script>
 </body>
 </html>
