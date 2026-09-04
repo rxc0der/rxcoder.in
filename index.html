@@ -1,458 +1,599 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>rxcoder</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400&family=Space+Mono&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rahul K P — Techno-Functional Consultant, Odoo ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --ink:#1c1120;
+    --surface:#faf9f7;
+    --panel:#f1eaf0;
+    --panel2:#eee7e5;
+    --line:#ddd2db;
+    --accent:#744069;
+    --accent-soft:#efe3ec;
+    --amber:#b9821f;
+    --amber-soft:#f6ecd8;
+    --mid:#6d6272;
+    --rail-w:220px;
+  }
+  html{scroll-behavior:smooth;}
+  html,body{overflow-x:hidden;width:100%;}
+  body{
+    background:var(--surface);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  ::selection{background:var(--accent);color:#fff;}
 
-    :root {
-      --bg: #ffffff;
-      --ink: #111111;
-      --mid: #888888;
-      --faint: #cccccc;
-      --ghost: #eeeeee;
-      --green: #22c55e;
-      --green-soft: rgba(34,197,94,0.12);
-    }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.01em;color:var(--ink);}
+  .mono{font-family:'IBM Plex Mono',monospace;}
 
-    html, body { height: 100%; }
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
 
-    body {
-      background: var(--bg);
-      font-family: 'Inter', sans-serif;
-      color: var(--ink);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      overflow: hidden;
-      cursor: none;
-    }
+  /* ============ RAIL ============ */
+  .rail{
+    position:fixed;
+    top:0;left:0;bottom:0;
+    width:var(--rail-w);
+    border-right:1px solid var(--line);
+    background:var(--surface);
+    display:flex;
+    flex-direction:column;
+    padding:28px 26px;
+    z-index:50;
+  }
+  .rail-mark{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:18px;
+    margin-bottom:3px;
+  }
+  .rail-role{
+    font-size:11.5px;
+    color:var(--mid);
+    line-height:1.45;
+    margin-bottom:34px;
+    max-width:150px;
+  }
+  .rail-nav{display:flex;flex-direction:column;gap:2px;margin-bottom:auto;}
+  .rail-nav a{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+    color:var(--mid);
+    text-decoration:none;
+    padding:9px 10px;
+    border-radius:6px;
+    transition:color .15s ease, background .15s ease;
+  }
+  .rail-nav a .dot{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--line);
+    transition:background .15s ease, transform .15s ease;
+    flex-shrink:0;
+  }
+  .rail-nav a:hover{color:var(--ink);background:var(--panel);}
+  .rail-nav a.active{color:var(--ink);background:var(--accent-soft);}
+  .rail-nav a.active .dot{background:var(--accent);transform:scale(1.4);}
 
-    /* ── custom cursor ── */
-    #cursor {
-      position: fixed;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--ink);
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: width 0.2s, height 0.2s, background 0.2s;
-      mix-blend-mode: multiply;
-    }
-    #cursor.big {
-      width: 48px; height: 48px;
-      background: rgba(0,0,0,0.06);
-    }
+  .rail-status{
+    margin-top:24px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    font-size:11px;
+    color:var(--mid);
+  }
+  .rail-status .pulse{
+    display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:#3f9d5c;margin-right:7px;
+    animation:pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  @keyframes rise{
+    from{opacity:0;transform:translateY(16px);}
+    to{opacity:1;transform:translateY(0);}
+  }
 
-    /* ── canvas for particles ── */
-    #canvas {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
+  /* ============ MAIN ============ */
+  main{
+    margin-left:var(--rail-w);
+    max-width:760px;
+    padding:0 48px 100px;
+  }
+  section{
+    padding-top:90px;
+    scroll-margin-top:40px;
+  }
+  section:first-of-type{padding-top:70px;}
 
-    /* ── noise overlay ── */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-      opacity: 0.025;
-      pointer-events: none;
-      z-index: 2;
-    }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:30px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .section-head h2{font-size:22px;font-weight:600;}
+  .section-head .count{font-size:12px;color:var(--mid);}
 
-    /* ── stage ── */
-    .stage {
-      position: relative;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      text-align: center;
-      padding: 0 24px;
-    }
+  /* ---- hero ---- */
+  #overview{position:relative;}
+  #overview::before{
+    content:'';
+    position:absolute;
+    top:-40px; right:-10%;
+    width:70%; height:340px;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:34px 34px;
+    -webkit-mask-image:radial-gradient(ellipse 60% 90% at 70% 30%, #000 0%, transparent 75%);
+    mask-image:radial-gradient(ellipse 60% 90% at 70% 30%, #000 0%, transparent 75%);
+    opacity:.6;
+    pointer-events:none;
+    z-index:0;
+  }
+  .hero{position:relative;z-index:1;opacity:0;animation:rise .8s cubic-bezier(.16,1,.3,1) forwards .1s;}
+  .hero-name{
+    position:relative;
+    font-size:clamp(40px,6vw,58px);
+    font-weight:700;
+    line-height:1.02;
+    margin-bottom:14px;
+  }
+  .hero-name::before{
+    content:'';
+    position:absolute;
+    left:-40px; top:-60px;
+    width:260px; height:260px;
+    background:radial-gradient(circle, var(--accent-soft) 0%, transparent 68%);
+    z-index:-1;
+    pointer-events:none;
+  }
+  .hero-title{
+    font-size:17px;
+    color:var(--accent);
+    font-weight:500;
+    margin-bottom:22px;
+  }
+  .hero-pitch{
+    font-size:16px;
+    color:#463b4b;
+    max-width:56ch;
+    line-height:1.75;
+    margin-bottom:28px;
+  }
+  .hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+  .hero-tags span{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:6px 11px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    color:var(--mid);
+  }
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn{
+    font-size:13.5px;
+    font-weight:500;
+    padding:11px 20px;
+    border-radius:6px;
+    text-decoration:none;
+    transition:transform .15s ease, background .15s ease;
+    display:inline-block;
+  }
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:hover{background:var(--accent);transform:translateY(-1px);}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--ink);transform:translateY(-1px);}
 
-    /* ── eyebrow ── */
-    .eyebrow {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.38em;
-      text-transform: uppercase;
-      color: var(--faint);
-      margin-bottom: 20px;
-      opacity: 0;
-      animation: rise 0.7s ease forwards 0.1s;
-    }
+  /* ---- modules (skills) ---- */
+  .modules-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .module-tile{
+    background:var(--surface);
+    padding:22px 22px 20px;
+  }
+  .module-icon{
+    width:30px;height:30px;
+    border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .module-tile:nth-child(1) .module-icon{background:var(--accent);}
+  .module-tile:nth-child(2) .module-icon{background:#5a7d63;}
+  .module-tile:nth-child(3) .module-icon{background:var(--amber);}
+  .module-tile:nth-child(4) .module-icon{background:#4a6b8a;}
+  .module-tile h3{font-size:14.5px;font-weight:600;margin-bottom:12px;}
+  .module-tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .module-tags span{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--mid);
+    background:var(--panel);
+    padding:4px 8px;
+    border-radius:4px;
+  }
 
-    /* ── wordmark ── */
-    .wordmark-wrap {
-      position: relative;
-      margin-bottom: 36px;
-      opacity: 0;
-      animation: rise 1s cubic-bezier(0.16,1,0.3,1) forwards 0.3s;
-    }
+  /* ---- deployment history (timeline) ---- */
+  .timeline{position:relative;padding-left:26px;}
+  .timeline::before{
+    content:'';
+    position:absolute;left:5px;top:6px;bottom:6px;
+    width:1px;background:var(--line);
+  }
+  .tl-item{position:relative;padding-bottom:36px;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{
+    content:'';
+    position:absolute;left:-26px;top:5px;
+    width:11px;height:11px;border-radius:50%;
+    background:var(--surface);
+    border:2px solid var(--line);
+  }
+  .tl-item.current::before{border-color:var(--accent);background:var(--accent);}
+  .tl-date{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--mid);
+    margin-bottom:6px;
+  }
+  .tl-role{font-size:16px;font-weight:600;margin-bottom:2px;}
+  .tl-org{font-size:13.5px;color:var(--accent);margin-bottom:10px;}
+  .tl-desc{font-size:14px;color:#463b4b;max-width:58ch;margin-bottom:12px;}
+  .tl-desc ul{padding-left:18px;display:flex;flex-direction:column;gap:5px;}
+  .tl-badge{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:3px 9px;
+    border-radius:4px;
+    margin-top:2px;
+  }
 
-    /* glitch layers */
-    .wordmark-wrap::before,
-    .wordmark-wrap::after {
-      content: attr(data-text);
-      position: absolute;
-      inset: 0;
-      font-family: 'Inter', sans-serif;
-      font-weight: 100;
-      font-size: clamp(72px, 13vw, 128px);
-      letter-spacing: -0.04em;
-      line-height: 1;
-      pointer-events: none;
-    }
-    .wordmark-wrap::before {
-      color: rgba(255,0,80,0.18);
-      animation: glitch-a 4s infinite steps(1);
-      clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
-    }
-    .wordmark-wrap::after {
-      color: rgba(0,200,255,0.18);
-      animation: glitch-b 4s infinite steps(1);
-      clip-path: polygon(0 55%, 100% 55%, 100% 75%, 0 75%);
-    }
+  /* ---- services (list view) ---- */
+  .list-view{border-top:1px solid var(--line);}
+  .list-row{
+    display:grid;
+    grid-template-columns:160px 1fr;
+    gap:24px;
+    padding:20px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .list-row .list-label{
+    font-size:14.5px;
+    font-weight:600;
+  }
+  .list-row .list-tag{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:var(--amber);
+    margin-top:6px;
+  }
+  .list-row p{font-size:14px;color:#463b4b;max-width:52ch;}
 
-    .wordmark {
-      font-weight: 100;
-      font-size: clamp(72px, 13vw, 128px);
-      letter-spacing: -0.04em;
-      line-height: 1;
-      color: var(--ink);
-      display: block;
-      position: relative;
-      user-select: none;
-    }
+  /* ---- contact ---- */
+  .contact-panel{
+    background:var(--panel);
+    border-radius:10px;
+    padding:38px 34px;
+    margin-top:10px;
+  }
+  .contact-panel h2{font-size:24px;margin-bottom:10px;}
+  .contact-panel p{color:#463b4b;max-width:48ch;margin-bottom:22px;font-size:14.5px;}
+  .contact-links{display:flex;flex-direction:column;gap:2px;}
+  .contact-links a{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 4px;
+    border-bottom:1px solid var(--line);
+    text-decoration:none;
+    font-size:14.5px;
+    font-weight:500;
+    transition:padding-left .15s ease, color .15s ease;
+  }
+  .contact-links a:last-child{border-bottom:none;}
+  .contact-links a:hover{padding-left:8px;color:var(--accent);}
+  .contact-links a .mono{color:var(--mid);font-size:12px;}
 
-    /* char hover effect via JS */
-    .wordmark span {
-      display: inline-block;
-      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), color 0.2s;
-    }
-    .wordmark span:hover {
-      transform: translateY(-6px) scale(1.08);
-      color: var(--mid);
-    }
+  footer{
+    margin-top:70px;
+    padding-top:22px;
+    border-top:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--mid);
+  }
 
-    /* cursor blink */
-    .blink {
-      display: inline-block;
-      width: 3px;
-      height: clamp(48px, 9vw, 90px);
-      background: var(--faint);
-      margin-left: 4px;
-      vertical-align: middle;
-      animation: blink 1s step-end infinite;
-      position: relative;
-      top: -4px;
+  /* ============ MOBILE ============ */
+  .rail-toggle{display:none;}
+  @media (max-width:900px){
+    :root{--rail-w:0px;}
+    .rail{
+      position:sticky;top:0;
+      width:100%;
+      flex-direction:row;
+      align-items:center;
+      padding:14px 16px;
+      border-right:none;
+      border-bottom:1px solid var(--line);
+      z-index:100;
+      gap:16px;
     }
+    .rail-role,.rail-status{display:none;}
+    .rail-nav{
+      flex-direction:row;
+      overflow-x:auto;
+      gap:4px;
+      margin-bottom:0;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .rail-nav::-webkit-scrollbar{display:none;}
+    .rail-nav a{white-space:nowrap;padding:8px 12px;flex-shrink:0;}
+    main{margin-left:0;padding:0 20px 60px;}
+    section{padding-top:52px;}
+    section:first-of-type{padding-top:36px;}
 
-    /* ── pill row ── */
-    .pills {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 32px;
-      opacity: 0;
-      animation: rise 0.7s ease forwards 0.7s;
-    }
+    #overview::before{width:120%;right:-20%;height:260px;opacity:.4;}
+    .hero-name::before{width:200px;height:200px;left:-30px;top:-40px;}
+    .hero-cta{flex-direction:column;align-items:stretch;}
+    .hero-cta .btn{text-align:center;}
 
-    .pill {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      padding: 5px 14px;
-      border: 1px solid var(--ghost);
-      border-radius: 100px;
-      color: var(--mid);
-      background: transparent;
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-    }
-    .pill:hover {
-      border-color: var(--ink);
-      color: var(--ink);
-    }
-    .pill.live {
-      border-color: rgba(34,197,94,0.4);
-      color: var(--green);
-      background: var(--green-soft);
-    }
-    .pill.live::before {
-      content: '';
-      display: inline-block;
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--green);
-      margin-right: 7px;
-      vertical-align: middle;
-      animation: pulse 2s ease-in-out infinite;
-      position: relative; top: -1px;
-    }
+    .modules-grid{grid-template-columns:1fr;}
+    .module-tile{padding:20px 18px;}
 
-    /* ── tagline ── */
-    .tagline {
-      font-weight: 200;
-      font-size: clamp(13px, 1.8vw, 15px);
-      color: var(--mid);
-      letter-spacing: 0.06em;
-      max-width: 340px;
-      line-height: 1.8;
-      margin-bottom: 32px;
-      opacity: 0;
-      animation: rise 0.7s ease forwards 0.9s;
-    }
+    .list-row{grid-template-columns:1fr;gap:6px;padding:18px 0;}
 
-    /* ── contact ── */
-    .contact-wrap {
-      opacity: 0;
-      animation: rise 0.7s ease forwards 1.1s;
-    }
+    .section-head{margin-bottom:22px;}
 
-    .contact {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--faint);
-      text-decoration: none;
-      letter-spacing: 0.1em;
-      position: relative;
-      padding-bottom: 3px;
-    }
-    .contact::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0;
-      width: 0; height: 1px;
-      background: var(--ink);
-      transition: width 0.3s ease;
-    }
-    .contact:hover { color: var(--ink); }
-    .contact:hover::after { width: 100%; }
+    .timeline{padding-left:22px;}
+    .tl-item::before{left:-22px;}
 
-    /* ── footer ── */
-    footer {
-      position: fixed;
-      bottom: 0;
-      left: 0; right: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      padding: 20px 32px;
-      z-index: 3;
-      opacity: 0;
-      animation: rise 0.6s ease forwards 1.4s;
-    }
+    .contact-panel{padding:28px 22px;}
+    .contact-links a{flex-wrap:wrap;gap:4px;}
 
-    .footer-text {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--faint);
-    }
+    footer{flex-direction:column;gap:6px;}
+  }
 
-    /* ── corner decorations ── */
-    .corner {
-      position: fixed;
-      width: 20px; height: 20px;
-      opacity: 0;
-      animation: rise 0.6s ease forwards 1.5s;
-      z-index: 3;
-    }
-    .corner svg { display: block; }
-    .tl { top: 24px; left: 24px; }
-    .tr { top: 24px; right: 24px; transform: rotate(90deg); }
-    .bl { bottom: 24px; left: 24px; transform: rotate(-90deg); }
-    .br { bottom: 24px; right: 24px; transform: rotate(180deg); }
-
-    /* ── keyframes ── */
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes blink {
-      0%,100% { opacity: 1; } 50% { opacity: 0; }
-    }
-    @keyframes pulse {
-      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
-    }
-    @keyframes glitch-a {
-      0%,90%,100% { transform: translate(0); }
-      92% { transform: translate(-3px, 1px); }
-      94% { transform: translate(3px, -1px); }
-      96% { transform: translate(-2px, 0); }
-    }
-    @keyframes glitch-b {
-      0%,90%,100% { transform: translate(0); }
-      93% { transform: translate(3px, 1px); }
-      95% { transform: translate(-3px, -1px); }
-      97% { transform: translate(2px, 0); }
-    }
-
-    @media (max-width: 480px) {
-      footer { padding: 14px 18px; }
-      .corner { display: none; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      * { animation-duration: 0.01ms !important; }
-    }
-  </style>
+  @media (max-width:420px){
+    .hero-name{font-size:34px;}
+    .hero-title{font-size:15px;}
+    .hero-pitch{font-size:14.5px;}
+    .module-tags span,.hero-tags span{font-size:10px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important;}
+    html{scroll-behavior:auto;}
+  }
+</style>
 </head>
 <body>
 
-<div id="cursor"></div>
-<canvas id="canvas"></canvas>
-
-<!-- corner brackets -->
-<div class="corner tl"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
-<div class="corner tr"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
-<div class="corner bl"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
-<div class="corner br"><svg width="20" height="20" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M20 1H1v19"/></svg></div>
-
-<main class="stage" role="main">
-  <span class="eyebrow">est. 2026</span>
-
-  <div class="wordmark-wrap" data-text="rxcoder">
-    <h1 class="wordmark" id="wm"></h1><span class="blink"></span>
+<nav class="rail" aria-label="Section navigation">
+  <div class="rail-mark">Rahul K P</div>
+  <div class="rail-role">Techno-Functional Consultant, Odoo ERP</div>
+  <div class="rail-nav" id="railNav">
+    <a href="#overview" class="active"><span class="dot"></span>Overview</a>
+    <a href="#modules"><span class="dot"></span>Core modules</a>
+    <a href="#history"><span class="dot"></span>Deployment history</a>
+    <a href="#services"><span class="dot"></span>Services</a>
+    <a href="#contact"><span class="dot"></span>Contact</a>
   </div>
+  <div class="rail-status"><span class="pulse"></span>Open to Odoo &amp; AMC engagements</div>
+</nav>
 
-  <div class="pills">
-    <span class="pill live">available for projects</span>
-    <span class="pill">full-stack</span>
-    <span class="pill">open source</span>
-  </div>
+<main>
 
-  <p class="tagline">crafting clean code &amp;<br>thoughtful digital experiences</p>
+  <section id="overview">
+    <div class="hero">
+      <h1 class="hero-name">Rahul K P</h1>
+      <div class="hero-title">Techno-Functional Consultant · Odoo ERP</div>
+      <p class="hero-pitch">
+        I build and run Odoo implementations end to end — from business requirement
+        analysis and module configuration through to custom development, workflow
+        automation and the AMC support that keeps a live system healthy. Currently
+        a Junior Techno-Functional Consultant at Odox SoftHub LLP, working across
+        Odoo 19 customization, dashboard &amp; reporting, project coordination and
+        scrum facilitation for client delivery teams.
+      </p>
+      <div class="hero-tags">
+        <span>Odoo 19</span>
+        <span>Python</span>
+        <span>React</span>
+        <span>Next.js</span>
+        <span>JavaScript</span>
+        <span>Deployment</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="mailto:rahukp784@gmail.com">Email me</a>
+        <a class="btn btn-ghost" href="https://www.linkedin.com/in/rxcoder/" target="_blank" rel="noopener">LinkedIn profile</a>
+      </div>
+    </div>
+  </section>
 
-  <div class="contact-wrap">
-    <a class="contact" href="mailto:rahukp784@gmail.com">rahukp784@gmail.com</a>
-  </div>
+  <section id="modules">
+    <div class="section-head">
+      <h2>Core modules</h2>
+      <span class="count mono">4 areas</span>
+    </div>
+    <div class="modules-grid">
+      <div class="module-tile">
+        <div class="module-icon">Dv</div>
+        <h3>Development</h3>
+        <div class="module-tags">
+          <span>Python</span><span>XML</span><span>JavaScript</span>
+          <span>React</span><span>Next.js</span><span>Odoo ORM</span>
+          <span>QWeb</span><span>PostgreSQL</span>
+        </div>
+      </div>
+      <div class="module-tile">
+        <div class="module-icon">Fn</div>
+        <h3>Functional</h3>
+        <div class="module-tags">
+          <span>Business requirement analysis</span><span>ERP process implementation</span>
+          <span>Module configuration</span><span>Workflow automation</span>
+        </div>
+      </div>
+      <div class="module-tile">
+        <div class="module-icon">Dl</div>
+        <h3>Delivery &amp; project management</h3>
+        <div class="module-tags">
+          <span>AMC management</span><span>Project coordination</span>
+          <span>Scrum master</span><span>Sprint planning</span>
+        </div>
+      </div>
+      <div class="module-tile">
+        <div class="module-icon">Rp</div>
+        <h3>Reporting, tools &amp; deployment</h3>
+        <div class="module-tags">
+          <span>Dashboard creation</span><span>Custom reporting</span>
+          <span>Odoo Studio</span><span>Git</span>
+          <span>Vercel</span><span>CI/CD</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="history">
+    <div class="section-head">
+      <h2>Deployment history</h2>
+      <span class="count mono">2 roles</span>
+    </div>
+    <div class="timeline">
+      <div class="tl-item current">
+        <div class="tl-date">2023 — Present</div>
+        <div class="tl-role">Junior Techno-Functional Consultant</div>
+        <div class="tl-org">Odox SoftHub LLP</div>
+        <div class="tl-desc">
+          Odoo Techno-Functional Developer with hands-on experience in Odoo 19
+          customization, ERP process implementation and business requirement
+          analysis. Own module development, workflow automation, dashboard
+          creation and reporting for client projects, built on Python, XML,
+          JavaScript and the Odoo framework.
+          <ul>
+            <li>Run AMC (Annual Maintenance Contract) support for live client instances</li>
+            <li>Coordinate project timelines and requirements between clients and dev team</li>
+            <li>Facilitate scrum ceremonies — sprint planning, stand-ups, reviews</li>
+          </ul>
+        </div>
+        <span class="tl-badge">Current</span>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Jul 2022 — Mar 2023 · 9 mos</div>
+        <div class="tl-role">Django Developer Intern</div>
+        <div class="tl-org">Business Technology Research &amp; Analytics Centre</div>
+        <div class="tl-desc">
+          Internship building backend features in Django, laying the Python
+          foundation that carried into ERP and Odoo framework development.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="section-head">
+      <h2>Services</h2>
+      <span class="count mono">4 offerings</span>
+    </div>
+    <div class="list-view">
+      <div class="list-row">
+        <div>
+          <span class="list-label">Odoo implementation</span>
+          <span class="list-tag">DEV + FUNCTIONAL</span>
+        </div>
+        <p>Requirement analysis through configuration, custom module development
+        and go-live — handling both the functional setup and the code behind it.</p>
+      </div>
+      <div class="list-row">
+        <div>
+          <span class="list-label">AMC management</span>
+          <span class="list-tag">SUPPORT</span>
+        </div>
+        <p>Ongoing maintenance for live Odoo instances: bug fixes, small
+        enhancements, performance checks and version-health monitoring under
+        an annual maintenance contract.</p>
+      </div>
+      <div class="list-row">
+        <div>
+          <span class="list-label">Project coordination</span>
+          <span class="list-tag">DELIVERY</span>
+        </div>
+        <p>Single point of contact between client stakeholders and the
+        development team — scoping, timelines, status updates and handling
+        blockers before they become delays.</p>
+      </div>
+      <div class="list-row">
+        <div>
+          <span class="list-label">Scrum facilitation</span>
+          <span class="list-tag">PROCESS</span>
+        </div>
+        <p>Running sprint planning, daily stand-ups, reviews and retros to keep
+        a delivery team's cadence honest and predictable.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="contact-panel">
+      <h2>Let's talk about your Odoo project</h2>
+      <p>Whether it's a fresh implementation, an AMC handover, or a project
+      that needs a coordinator who can also read the code — reach out.</p>
+      <div class="contact-links">
+        <a href="mailto:rahukp784@gmail.com">Email <span class="mono">rahukp784@gmail.com</span></a>
+        <a href="https://www.linkedin.com/in/rxcoder/" target="_blank" rel="noopener">LinkedIn <span class="mono">in/rxcoder</span></a>
+      </div>
+    </div>
+    <footer>
+      <span>Rahul K P — Odoo Techno-Functional Consultant</span>
+      <span>© 2026</span>
+    </footer>
+  </section>
+
 </main>
 
-<footer>
-  <span class="footer-text">rxcoder</span>
-  <span class="footer-text">© 2026</span>
-</footer>
-
 <script>
-  /* ── split wordmark into spans ── */
-  const wm = document.getElementById('wm');
-  'rxcoder'.split('').forEach(c => {
-    const s = document.createElement('span');
-    s.textContent = c;
-    wm.appendChild(s);
-  });
-
-  /* ── custom cursor ── */
-  const cur = document.getElementById('cursor');
-  document.addEventListener('mousemove', e => {
-    cur.style.left = e.clientX + 'px';
-    cur.style.top  = e.clientY + 'px';
-  });
-  document.querySelectorAll('a, span[class], h1 span').forEach(el => {
-    el.addEventListener('mouseenter', () => cur.classList.add('big'));
-    el.addEventListener('mouseleave', () => cur.classList.remove('big'));
-  });
-
-  /* ── particle canvas ── */
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  let W, H, particles = [];
-
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  class Particle {
-    constructor(x, y) {
-      this.x = x ?? Math.random() * W;
-      this.y = y ?? Math.random() * H;
-      this.size = Math.random() * 1.5 + 0.3;
-      this.vx = (Math.random() - 0.5) * 0.3;
-      this.vy = (Math.random() - 0.5) * 0.3;
-      this.life = 1;
-      this.decay = Math.random() * 0.003 + 0.001;
-      this.spawned = !!x;
-    }
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      this.life -= this.decay;
-    }
-    draw() {
-      ctx.globalAlpha = this.life * 0.35;
-      ctx.fillStyle = '#111';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // ambient particles
-  for (let i = 0; i < 60; i++) particles.push(new Particle());
-
-  // mouse trail
-  let mx = -999, my = -999;
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-
-  let frame = 0;
-  function loop() {
-    ctx.clearRect(0, 0, W, H);
-    // spawn trail
-    frame++;
-    if (frame % 3 === 0 && mx > 0) {
-      particles.push(new Particle(mx + (Math.random()-0.5)*6, my + (Math.random()-0.5)*6));
-    }
-    // draw connections
-    ctx.globalAlpha = 0.04;
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth = 0.5;
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i+1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const d = Math.sqrt(dx*dx + dy*dy);
-        if (d < 90) {
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.stroke();
-        }
+  const links = document.querySelectorAll('.rail-nav a');
+  const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = '#' + entry.target.id;
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === id));
       }
-    }
-    particles = particles.filter(p => {
-      p.update(); p.draw();
-      if (!p.spawned && p.life <= 0) return false;
-      if (p.spawned && p.life <= 0) return false;
-      if (!p.spawned && (p.x < 0 || p.x > W || p.y < 0 || p.y > H)) {
-        p.x = Math.random() * W;
-        p.y = Math.random() * H;
-        p.life = 1;
-      }
-      return true;
     });
-    // keep ambient count steady
-    while (particles.filter(p => !p.spawned).length < 60) particles.unshift(new Particle());
-    requestAnimationFrame(loop);
-  }
-  loop();
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+  sections.forEach(s => s && obs.observe(s));
 </script>
+
 </body>
 </html>
